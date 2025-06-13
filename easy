@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oeasy - 幽默风趣带你学Python</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#FF6B8B', // 可爱粉色作为主色调
+            secondary: '#4CAF50', // 绿色作为辅助色
+            dark: '#2C3E50',
+            light: '#F9FAFB'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .text-shadow-lg {
+        text-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+      }
+      .transition-transform-opacity {
+        transition-property: transform, opacity;
+      }
+    }
+  </style>
+  
+  <style>
+    /* 平滑滚动 */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* 动画效果 */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* 背景图设置 */
+    .bg-oeasy {
+      background-image: url('https://img.picui.cn/free/2025/06/13/684bc6d352a91.png');
+      background-size: cover;
+      background-position: center;
+    }
+    
+    /* 音频控件样式 */
+    .audio-control {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 50;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      width: 3.5rem;
+      height: 3.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+    }
+    
+    .audio-control:hover {
+      transform: scale(1.1);
+      background-color: white;
+    }
+    
+    .audio-icon {
+      color: #FF6B8B;
+      font-size: 1.5rem;
+    }
+    
+    .audio-control.active .fa-play {
+      display: none;
+    }
+    
+    .audio-control.active .fa-pause {
+      display: block;
+    }
+    
+    .fa-pause {
+      display: none;
+    }
+    
+    /* 音频提示样式 */
+    .audio-toast {
+      position: fixed;
+      bottom: 7rem;
+      right: 2rem;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .audio-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body class="font-inter bg-light text-dark antialiased">
+  <!-- 音频元素 -->
+  <audio id="bgMusic" loop>
+    <source src="music.mp3" type="audio/mpeg">
+    您的浏览器不支持音频播放
+  </audio>
+  
+  <!-- 音频控制按钮 -->
+  <div class="audio-control" id="audioControl">
+    <i class="fa fa-play audio-icon"></i>
+    <i class="fa fa-pause audio-icon"></i>
+  </div>
+  
+  <!-- 音频提示 -->
+  <div class="audio-toast" id="audioToast">点击按钮播放背景音乐</div>
+
+  <!-- 导航栏 -->
+  <header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300">
+    <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="#" class="flex items-center space-x-2">
+        <span class="text-2xl font-bold text-white text-shadow">oeasy</span>
+      </a>
+      
+      <!-- 桌面导航 -->
+      <div class="hidden md:flex space-x-8">
+        <a href="#home" class="text-white hover:text-secondary transition-colors font-medium">首页</a>
+        <a href="#courses" class="text-white hover:text-secondary transition-colors font-medium">课程</a>
+        <a href="#style" class="text-white hover:text-secondary transition-colors font-medium">教学风格</a>
+        <a href="#testimonials" class="text-white hover:text-secondary transition-colors font-medium">学员评价</a>
+        <a href="#contact" class="text-white hover:text-secondary transition-colors font-medium">联系我</a>
+      </div>
+      
+      <!-- B站和关注按钮 -->
+      <div class="hidden md:flex items-center space-x-4">
+        <a href="https://space.bilibili.com/" target="_blank" class="text-white hover:text-secondary transition-colors">
+          <i class="fa fa-bilibili text-2xl"></i>
+        </a>
+        <button class="bg-secondary hover:bg-secondary/90 text-white font-semibold py-2 px-6 rounded-full transition-all transform hover:scale-105">
+          关注我
+        </button>
+      </div>
+      
+      <!-- 移动端菜单按钮 -->
+      <button id="menuBtn" class="md:hidden text-white text-2xl">
+        <i class="fa fa-bars"></i>
+      </button>
+    </nav>
+    
+    <!-- 移动端菜单 -->
+    <div id="mobileMenu" class="md:hidden bg-dark/95 backdrop-blur-sm absolute w-full left-0 top-full transform -translate-y-full opacity-0 transition-all duration-300 invisible">
+      <div class="container mx-auto px-4 py-4 flex flex-col space-y-4">
+        <a href="#home" class="text-white hover:text-secondary transition-colors font-medium py-2">首页</a>
+        <a href="#courses" class="text-white hover:text-secondary transition-colors font-medium py-2">课程</a>
+        <a href="#style" class="text-white hover:text-secondary transition-colors font-medium py-2">教学风格</a>
+        <a href="#testimonials" class="text-white hover:text-secondary transition-colors font-medium py-2">学员评价</a>
+        <a href="#contact" class="text-white hover:text-secondary transition-colors font-medium py-2">联系我</a>
+        <div class="flex items-center space-x-4 pt-2">
+          <a href="https://space.bilibili.com/" target="_blank" class="text-white hover:text-secondary transition-colors">
+            <i class="fa fa-bilibili text-2xl"></i>
+          </a>
+          <button class="bg-secondary hover:bg-secondary/90 text-white font-semibold py-2 px-6 rounded-full transition-all transform hover:scale-105">
+            关注我
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 英雄区域 -->
+  <section id="home" class="relative min-h-screen flex items-center justify-center overflow-hidden bg-oeasy">
+    <!-- 背景遮罩 -->
+    <div class="absolute inset-0 bg-gradient-to-r from-primary/80 to-dark/80"></div>
+    
+    <!-- 内容 -->
+    <div class="container mx-auto px-4 relative z-10 text-center">
+      <div class="max-w-3xl mx-auto">
+        <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-bold text-white leading-tight mb-6 text-shadow-lg">
+          用<span class="text-secondary">幽默风趣</span>的方式<br>带你走进<span class="text-secondary">Python</span>的世界
+        </h1>
+        <p class="text-[clamp(1rem,2vw,1.25rem)] text-white/90 mb-8 leading-relaxed">
+          我是oeasy，一位热爱教学的Python讲师。我的课程不仅能让你学会编程，更能让你爱上编程！
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <a href="#courses" class="bg-secondary hover:bg-secondary/90 text-white font-semibold py-3 px-8 rounded-full transition-all transform hover:scale-105 text-lg">
+            查看课程
+          </a>
+          <a href="https://space.bilibili.com/" target="_blank" class="bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold py-3 px-8 rounded-full transition-all text-lg">
+            访问B站主页
+          </a>
+        </div>
+      </div>
+      
+      <!-- 浮动的Python标志 -->
+      <div class="absolute bottom-10 right-10 md:right-20 animate-float hidden md:block">
+        <div class="bg-white/20 backdrop-blur-md p-4 rounded-full">
+          <i class="fa fa-python text-[clamp(2rem,4vw,3rem)] text-white"></i>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 滚动提示 -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+      <a href="#courses" class="text-white/80 hover:text-white transition-colors">
+        <i class="fa fa-angle-down text-3xl"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- 课程区域 -->
+  <section id="courses" class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-4">热门Python课程</h2>
+        <p class="text-gray-600 max-w-2xl mx-auto">精心设计的课程体系，从入门到精通，满足不同阶段的学习需求</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- 课程卡片1 -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+          <div class="h-48 overflow-hidden">
+            <img src="https://picsum.photos/id/0/600/400" alt="Python入门课程" class="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500">
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-3">
+              <span class="bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full">入门</span>
+              <span class="text-gray-500 text-sm">
+                <i class="fa fa-clock-o mr-1"></i> 40课时
+              </span>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Python编程入门到精通</h3>
+            <p class="text-gray-600 mb-4">从零基础开始，循序渐进地学习Python编程，掌握基础语法和常用库的使用。</p>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <img src="https://picsum.photos/id/1/40/40" alt="oeasy" class="w-8 h-8 rounded-full mr-2">
+                <span class="text-sm font-medium">oeasy</span>
+              </div>
+              <a href="#" class="text-primary hover:text-primary/80 font-semibold flex items-center">
+                查看详情 <i class="fa fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 课程卡片2 -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+          <div class="h-48 overflow-hidden">
+            <img src="https://picsum.photos/id/160/600/400" alt="数据分析课程" class="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500">
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-3">
+              <span class="bg-secondary/10 text-secondary text-xs font-semibold px-3 py-1 rounded-full">进阶</span>
+              <span class="text-gray-500 text-sm">
+                <i class="fa fa-clock-o mr-1"></i> 30课时
+              </span>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Python数据分析实战</h3>
+            <p class="text-gray-600 mb-4">学习使用Pandas、NumPy和Matplotlib进行数据分析和可视化，解决实际问题。</p>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <img src="https://picsum.photos/id/1/40/40" alt="oeasy" class="w-8 h-8 rounded-full mr-2">
+                <span class="text-sm font-medium">oeasy</span>
+              </div>
+              <a href="#" class="text-primary hover:text-primary/80 font-semibold flex items-center">
+                查看详情 <i class="fa fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 课程卡片3 -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+          <div class="h-48 overflow-hidden">
+            <img src="https://picsum.photos/id/20/600/400" alt="Web开发课程" class="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500">
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-3">
+              <span class="bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full">高级</span>
+              <span class="text-gray-500 text-sm">
+                <i class="fa fa-clock-o mr-1"></i> 50课时
+              </span>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Django全栈开发</h3>
+            <p class="text-gray-600 mb-4">掌握Django框架，从零开始构建功能完整的Web应用，实现前后端一体化开发。</p>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <img src="https://picsum.photos/id/1/40/40" alt="oeasy" class="w-8 h-8 rounded-full mr-2">
+                <span class="text-sm font-medium">oeasy</span>
+              </div>
+              <a href="#" class="text-primary hover:text-primary/80 font-semibold flex items-center">
+                查看详情 <i class="fa fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12">
+        <a href="#" class="inline-flex items-center text-primary hover:text-primary/80 font-semibold">
+          查看全部课程 <i class="fa fa-long-arrow-right ml-2"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 教学风格区域 -->
+  <section id="style" class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-4">我的教学风格</h2>
+        <p class="text-gray-600 max-w-2xl mx-auto">用最有趣的方式，讲解最枯燥的知识</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div class="order-2 md:order-1">
+          <div class="space-y-8">
+            <!-- 特点1 -->
+            <div class="flex items-start space-x-4">
+              <div class="bg-primary/10 text-primary p-3 rounded-full">
+                <i class="fa fa-lightbulb-o text-xl"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold mb-2">幽默风趣</h3>
+                <p class="text-gray-600">谁说编程学习一定要枯燥乏味？我会用最有趣的比喻和例子，让你在欢笑中掌握知识。</p>
+              </div>
+            </div>
+            
+            <!-- 特点2 -->
+            <div class="flex items-start space-x-4">
+              <div class="bg-secondary/10 text-secondary p-3 rounded-full">
+                <i class="fa fa-code text-xl"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold mb-2">实战导向</h3>
+                <p class="text-gray-600">每个知识点都配有实战案例，让你在实践中加深理解，学完就能用，真正做到学以致用。</p>
+              </div>
+            </div>
+            
+            <!-- 特点3 -->
+            <div class="flex items-start space-x-4">
+              <div class="bg-primary/10 text-primary p-3 rounded-full">
+                <i class="fa fa-comments text-xl"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold mb-2">互动教学</h3>
+                <p class="text-gray-600">鼓励学员提问和参与讨论，创造积极互动的学习氛围，让你的疑惑在第一时间得到解答。</p>
+              </div>
+            </div>
+            
+            <!-- 特点4 -->
+            <div class="flex items-start space-x-4">
+              <div class="bg-secondary/10 text-secondary p-3 rounded-full">
+                <i class="fa fa-map-o text-xl"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold mb-2">系统化学习</h3>
+                <p class="text-gray-600">精心设计的课程体系，从浅入深，循序渐进，让你构建完整的知识体系，不遗漏任何重要知识点。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="order-1 md:order-2 relative">
+          <div class="relative z-10 rounded-xl overflow-hidden shadow-2xl">
+            <img src="https://picsum.photos/id/1/600/800" alt="oeasy教学形象" class="w-full h-auto">
+          </div>
+          <div class="absolute -bottom-6 -right-6 w-40 h-40 bg-primary rounded-xl -z-10"></div>
+          <div class="absolute -top-6 -left-6 w-20 h-20 bg-secondary rounded-xl -z-10"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 数据统计区域 -->
+  <section class="py-16 bg-primary">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div class="text-white">
+          <div class="text-4xl font-bold mb-2 counter" data-target="500000">0</div>
+          <p class="text-white/80">累计观看量</p>
+        </div>
+        <div class="text-white">
+          <div class="text-4xl font-bold mb-2 counter" data-target="120000">0</div>
+          <p class="text-white/80">粉丝数量</p>
+        </div>
+        <div class="text-white">
+          <div class="text-4xl font-bold mb-2 counter" data-target="30">0</div>
+          <p class="text-white/80">精品课程</p>
+        </div>
+        <div class="text-white">
+          <div class="text-4xl font-bold mb-2 counter" data-target="98">0</div>
+          <p class="text-white/80">好评率(%)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 学员评价区域 -->
+  <section id="testimonials" class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-4">学员评价</h2>
+        <p class="text-gray-600 max-w-2xl mx-auto">听听他们是怎么说的</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- 评价1 -->
+        <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+          <div class="flex items-center mb-4">
+            <img src="https://picsum.photos/id/1005/100/100" alt="学员头像" class="w-12 h-12 rounded-full mr-4">
+            <div>
+              <h4 class="font-bold">张三</h4>
+              <div class="text-yellow-400">
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-600 italic">"oeasy老师的课程真的太有趣了！以前学Python总是学不进去，听了oeasy老师的课才发现编程原来可以这么有意思。现在我已经能独立完成一些小项目了，感谢oeasy老师！"</p>
+        </div>
+        
+        <!-- 评价2 -->
+        <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+          <div class="flex items-center mb-4">
+            <img src="https://picsum.photos/id/1012/100/100" alt="学员头像" class="w-12 h-12 rounded-full mr-4">
+            <div>
+              <h4 class="font-bold">李四</h4>
+              <div class="text-yellow-400">
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star-half-o"></i>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-600 italic">"作为一名零基础的学员，oeasy老师的课程让我受益匪浅。他的讲解非常清晰，例子也很生动，让我这个编程小白也能轻松理解。现在我已经在考虑转行做程序员了！"</p>
+        </div>
+        
+        <!-- 评价3 -->
+        <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+          <div class="flex items-center mb-4">
+            <img src="https://picsum.photos/id/1027/100/100" alt="学员头像" class="w-12 h-12 rounded-full mr-4">
+            <div>
+              <h4 class="font-bold">王五</h4>
+              <div class="text-yellow-400">
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+                <i class="fa fa-star"></i>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-600 italic">"oeasy老师不仅教编程，还教给我们学习方法和思维方式。他的课程让我从一个只会写Hello World的菜鸟，变成了能独立开发小应用的程序员。强烈推荐给所有想学Python的朋友！"</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 订阅区域 -->
+  <section id="contact" class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-4">不错过任何精彩内容</h2>
+        <p class="text-gray-600 mb-8">订阅我的频道，获取最新课程和编程技巧</p>
+        
+        <form class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+          <input type="email" placeholder="输入你的邮箱地址" class="flex-grow px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+          <button type="submit" class="bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 whitespace-nowrap">
+            立即订阅
+          </button>
+        </form>
+        
+        <p class="text-gray-500 text-sm mt-4">我们尊重您的隐私，不会向第三方分享您的信息</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark text-white py-12">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <h3 class="text-xl font-bold mb-4">oeasy</h3>
+          <p class="text-gray-400 mb-4">用幽默风趣的方式，带你走进Python的世界</p>
+          <div class="flex space-x-4">
+            <a href="https://space.bilibili.com/" target="_blank" class="text-gray-400 hover:text-white transition-colors">
+              <i class="fa fa-bilibili text-xl"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+              <i class="fa fa-weibo text-xl"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+              <i class="fa fa-wechat text-xl"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+              <i class="fa fa-github text-xl"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="font-bold mb-4">快速链接</h4>
+          <ul class="space-y-2">
+            <li><a href="#home" class="text-gray-400 hover:text-white transition-colors">首页</a></li>
+            <li><a href="#courses" class="text-gray-400 hover:text-white transition-colors">课程</a></li>
+            <li><a href="#style" class="text-gray-400 hover:text-white transition-colors">教学风格</a></li>
+            <li><a href="#testimonials" class="text-gray-400 hover:text-white transition-colors">学员评价</a></li>
+            <li><a href="#contact" class="text-gray-400 hover:text-white transition-colors">联系我</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-bold mb-4">热门课程</h4>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Python编程入门到精通</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Python数据分析实战</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Django全栈开发</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Python自动化测试</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Flask微框架实战</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-bold mb-4">联系我</h4>
+          <ul class="space-y-2">
+            <li class="flex items-center">
+              <i class="fa fa-envelope-o mr-2 text-gray-400"></i>
+              <a href="mailto:oeasy@example.com" class="text-gray-400 hover:text-white transition-colors">oeasy@example.com</a>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-phone mr-2 text-gray-400"></i>
+              <span class="text-gray-400">138-0013-8000</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500 text-sm">
+        <p>&copy; 2023 oeasy. 保留所有权利。</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // 音频控制
+    const audioControl = document.getElementById('audioControl');
+    const bgMusic = document.getElementById('bgMusic');
+    const audioToast = document.getElementById('audioToast');
+    
+    // 检查本地存储中是否有用户的音频偏好
+    const audioPreference = localStorage.getItem('bgMusicEnabled');
+    if (audioPreference === 'true') {
+      bgMusic.muted = false;
+      audioControl.classList.add('active');
+    } else {
+      bgMusic.muted = true;
+    }
+    
+    // 显示音频提示并在3秒后隐藏
+    setTimeout(() => {
+      audioToast.classList.add('show');
+      setTimeout(() => {
+        audioToast.classList.remove('show');
+      }, 3000);
+    }, 1000);
+    
+    audioControl.addEventListener('click', () => {
+      if (bgMusic.muted) {
+        bgMusic.muted = false;
+        // 尝试播放音频
+        bgMusic.play().catch(e => {
+          console.log("自动播放被阻止:", e);
+          // 显示提示
+          alert('点击任意位置开始播放背景音乐');
+        });
+        audioControl.classList.add('active');
+        // 存储用户偏好
+        localStorage.setItem('bgMusicEnabled', 'true');
+      } else {
+        bgMusic.pause();
+        bgMusic.muted = true;
+        audioControl.classList.remove('active');
+        // 存储用户偏好
+        localStorage.setItem('bgMusicEnabled', 'false');
+      }
+    });
+    
+    // 点击页面任意位置激活音频播放
+    document.addEventListener('click', function(event) {
+      // 忽略音频控制按钮的点击（已在上面处理）
+      if (event.target.closest('.audio-control')) {
+        return;
+      }
+      
+      // 如果音频被阻止播放，尝试在用户交互后重新播放
+      if (bgMusic.muted && localStorage.getItem('bgMusicEnabled') === 'true') {
+        bgMusic.muted = false;
+        bgMusic.play().catch(e => {
+          console.log("播放仍被阻止:", e);
+        });
+      }
+    });
+
+    // 导航栏滚动效果
+    window.addEventListener('scroll', function() {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 50) {
+        navbar.classList.add('bg-dark/95', 'backdrop-blur-sm', 'shadow-md');
+        navbar.classList.remove('py-4');
+        navbar.classList.add('py-2');
+      } else {
+        navbar.classList.remove('bg-dark/95', 'backdrop-blur-sm', 'shadow-md');
+        navbar.classList.remove('py-2');
+        navbar.classList.add('py-4');
+      }
+    });
+    
+    // 移动端菜单
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    menuBtn.addEventListener('click', function() {
+      if (mobileMenu.classList.contains('invisible')) {
+        mobileMenu.classList.remove('invisible', '-translate-y-full', 'opacity-0');
+        mobileMenu.classList.add('translate-y-0', 'opacity-100');
+        menuBtn.innerHTML = '<i class="fa fa-times"></i>';
+      } else {
+        mobileMenu.classList.add('invisible', '-translate-y-full', 'opacity-0');
+        mobileMenu.classList.remove('translate-y-0', 'opacity-100');
+        menuBtn.innerHTML = '<i class="fa fa-bars"></i>';
+      }
+    });
+    
+    // 数字动画
+    function animateCounter(element) {
+      const target = parseInt(element.getAttribute('data-target'));
+      const duration = 2000; // 动画持续时间（毫秒）
+      const stepTime = 20; // 每步更新的时间间隔（毫秒）
+      const totalSteps = duration / stepTime;
+      const valueIncrement = target / totalSteps;
+      let currentValue = 0;
+      
+      const timer = setInterval(function() {
+        currentValue += valueIncrement;
+        if (currentValue >= target) {
+          clearInterval(timer);
+          currentValue = target;
+        }
+        element.textContent = Math.floor(currentValue
